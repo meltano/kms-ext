@@ -1,6 +1,6 @@
 # KMS
 
-KMS is A meltano utility extension for encryption and decryption of dotenv secrets using AWS KMS.
+KMS is a Meltano utility extension for encryption and decryption of dotenv secrets using AWS KMS.
 
 ## Installing this extension for local development
 

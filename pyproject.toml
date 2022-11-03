@@ -6,14 +6,7 @@ authors = ["Ken Payne"]
 license = "Apache 2.0"
 packages = [
     { include = "kms_ext" }
-    # uncomment this if you want to include static assets
-    # { include = "files_kms-ext.*" }
 ]
-# If you need to static assets with your extension, you can add them here.
-# Under a directory path of "files_kms-ext/"
-#include = [
-#    "files_kms-ext/somefile.thing"
-#]
 
 [tool.poetry.dependencies]
 python = "<3.11,>=3.7"
@@ -38,5 +31,4 @@ requires = ["poetry-core>=1.0.8"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-kms_extension = 'kms_ext.main:app'
-kms_invoker = 'kms_ext.pass_through:pass_through_cli'
+kms = 'kms_ext.main:app'
