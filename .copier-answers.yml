@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier
+_commit: f38005d
+_src_path: gh:meltano/edk
+admin_name: Ken Payne
+cli_prefix: kms
+extension_description: A meltano utility extension for encryption and decryption of
+    dotenv secrets using AWS KMS.
+extension_id: kms-ext
+extension_name: KMS
+extension_name_lower: kms
+library_name: kms_ext
+wrapper_target_name: null
