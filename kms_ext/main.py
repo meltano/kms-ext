@@ -1,13 +1,14 @@
 """KMS cli entrypoint."""
 
-import os
 import sys
-from typing import List
+from pathlib import Path
+from typing import Optional
 
 import structlog
 import typer
 from meltano.edk.extension import DescribeFormat
 from meltano.edk.logging import default_logging_config, parse_log_level
+
 from kms_ext.extension import KMS
 
 APP_NAME = "KMS"
@@ -38,23 +39,6 @@ def initialize(
         sys.exit(1)
 
 
-@app.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
-)
-def invoke(ctx: typer.Context, command_args: List[str]) -> None:
-    """Invoke the plugin.
-
-    Note: that if a command argument is a list, such as command_args,
-    then unknown options are also included in the list and NOT stored in the
-    context as usual.
-    """
-    command_name, command_args = command_args[0], command_args[1:]
-    log.debug(
-        "called", command_name=command_name, command_args=command_args, env=os.environ
-    )
-    ext.pass_through_invoker(log, command_name, *command_args)
-
-
 @app.command()
 def describe(
     output_format: DescribeFormat = typer.Option(
@@ -71,6 +55,32 @@ def describe(
         sys.exit(1)
 
 
+@app.command()
+def encrypt(
+    public_key_path: Path,
+    dotenv_path: Optional[Path] = typer.Option(Path(".env")),
+    output_path: Optional[Path] = typer.Option(Path("secrets.yml")),
+) -> None:
+    """Encrypt a given dotenv file with a give RSA Public Key (PEM file)."""
+    ext.encrypt(
+        public_key_path=public_key_path,
+        dotenv_path=dotenv_path,
+        output_path=output_path,
+    )
+    typer.echo(f"Successfully encrypted dotenv file '{dotenv_path}' to '{output_path}'")
+
+
+@app.command()
+def decrypt(
+    kms_key_id: str,
+    input_path: Optional[Path] = typer.Option(Path("secrets.yml")),
+    output_path: Optional[Path] = typer.Option(Path(".env")),
+) -> None:
+    """Decrypt a given secrets file to a given dotenv file using AWS KMS."""
+    ext.decrypt(kms_key_id=kms_key_id, input_path=input_path, output_path=output_path)
+    typer.echo(f"Successfully decrypted secrets file '{input_path}' to '{output_path}'")
+
+
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
@@ -82,9 +92,10 @@ def main(
         False, "--log-levels", envvar="LOG_LEVELS", help="Show log levels"
     ),
     meltano_log_json: bool = typer.Option(
-        False, "--meltano-log-json",
+        False,
+        "--meltano-log-json",
         envvar="MELTANO_LOG_JSON",
-        help="Log in the meltano JSON log format"
+        help="Log in the meltano JSON log format",
     ),
 ) -> None:
     """Simple Meltano extension that wraps the None CLI."""
@@ -92,5 +103,5 @@ def main(
         level=parse_log_level(log_level),
         timestamps=log_timestamps,
         levels=log_levels,
-        json_format=meltano_log_json
+        json_format=meltano_log_json,
     )
