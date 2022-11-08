@@ -129,7 +129,7 @@ class KMS(ExtensionBase):
         return models.Describe(
             commands=[
                 models.ExtensionCommand(
-                    name="kms_extension", description="extension commands"
+                    name="kms", description="Encrypt/decrypt commands"
                 )
             ]
         )

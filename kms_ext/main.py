@@ -25,21 +25,6 @@ app = typer.Typer(
 
 
 @app.command()
-def initialize(
-    ctx: typer.Context,
-    force: bool = typer.Option(False, help="Force initialization (if supported)"),
-) -> None:
-    """Initialize the KMS plugin."""
-    try:
-        ext.initialize(force)
-    except Exception:
-        log.exception(
-            "initialize failed with uncaught exception, please report to maintainer"
-        )
-        sys.exit(1)
-
-
-@app.command()
 def describe(
     output_format: DescribeFormat = typer.Option(
         DescribeFormat.text, "--format", help="Output format"
@@ -98,7 +83,7 @@ def main(
         help="Log in the meltano JSON log format",
     ),
 ) -> None:
-    """Simple Meltano extension that wraps the None CLI."""
+    """Simple Meltano extension that wraps the `cryptography` python package and AWS KMS API."""
     default_logging_config(
         level=parse_log_level(log_level),
         timestamps=log_timestamps,
