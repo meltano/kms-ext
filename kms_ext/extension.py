@@ -67,6 +67,7 @@ class KMS(ExtensionBase):
 
     def encrypt(
         self,
+        kms_key_id: str,
         public_key_path: Path,
         dotenv_path: Path = Path(".env"),
         output_path: Path = Path("secrets.yml"),
@@ -74,6 +75,7 @@ class KMS(ExtensionBase):
         """Encrypt a given dotenv file with a given RSA public key (PEM file).
 
         Args:
+            kms_key_id: The KMS key ID for the keypair being used.
             public_key_path: Path to RSA public key (PEM file).
             dotenv_path: Path to dotenv file (defaults to '.env')
             output_path: Path to output file (defaults to 'secrets.yml')
@@ -92,7 +94,7 @@ class KMS(ExtensionBase):
             )
             env_vars.append(EnvVar(name=key, value=secret))
 
-        secrets = SecretsFile(env=env_vars)
+        secrets = SecretsFile(kms_key_id=kms_key_id, env=env_vars)
 
         with open(output_path, "w") as secrets_file:
             secrets_file.write(secrets.yaml())
@@ -101,20 +103,19 @@ class KMS(ExtensionBase):
 
     def decrypt(
         self,
-        kms_key_id: str,
         input_path: Path = Path("secrets.yml"),
         output_path: Path = Path(".env"),
     ) -> Path:
         client = boto3.client("kms")
 
-        with open(input_path, "r") as ciphertext_file:
+        with open(input_path) as ciphertext_file:
             secrets = SecretsFile.parse_raw(ciphertext_file.read())
 
         for env_var in secrets.env:
             ciphertext = base64.b64decode(env_var.value.ciphertext)
             response = client.decrypt(
                 CiphertextBlob=ciphertext,
-                KeyId=kms_key_id,
+                KeyId=secrets.kms_key_id,
                 EncryptionAlgorithm=env_var.value.scheme,  # "RSAES_OAEP_SHA_256" | "SYMMETRIC_DEFAULT" | "RSAES_OAEP_SHA_1" | "SM2PKE"
             )
             plaintext = response["Plaintext"].decode("utf-8")

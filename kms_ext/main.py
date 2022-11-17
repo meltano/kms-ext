@@ -42,12 +42,14 @@ def describe(
 
 @app.command()
 def encrypt(
+    kms_key_id: str,
     public_key_path: Path,
     dotenv_path: Optional[Path] = typer.Option(Path(".env")),
     output_path: Optional[Path] = typer.Option(Path("secrets.yml")),
 ) -> None:
-    """Encrypt a given dotenv file with a give RSA Public Key (PEM file)."""
+    """Encrypt a given dotenv file with a given RSA Public Key (PEM file)."""
     ext.encrypt(
+        kms_key_id=kms_key_id,
         public_key_path=public_key_path,
         dotenv_path=dotenv_path,
         output_path=output_path,
@@ -57,12 +59,11 @@ def encrypt(
 
 @app.command()
 def decrypt(
-    kms_key_id: str,
     input_path: Optional[Path] = typer.Option(Path("secrets.yml")),
     output_path: Optional[Path] = typer.Option(Path(".env")),
 ) -> None:
     """Decrypt a given secrets file to a given dotenv file using AWS KMS."""
-    ext.decrypt(kms_key_id=kms_key_id, input_path=input_path, output_path=output_path)
+    ext.decrypt(input_path=input_path, output_path=output_path)
     typer.echo(f"Successfully decrypted secrets file '{input_path}' to '{output_path}'")
 
 
