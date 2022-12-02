@@ -7,8 +7,8 @@ from typing import Any
 
 import boto3
 import dotenv
-import structlog
 import os
+import structlog
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from dotenv import dotenv_values
