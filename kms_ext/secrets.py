@@ -15,5 +15,4 @@ class EnvVar(BaseModel):
 
 
 class SecretsFile(YamlModel):
-    kms_key_id: str = None
     env: List[EnvVar]
