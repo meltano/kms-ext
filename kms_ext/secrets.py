@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import List
 
 from pydantic import BaseModel
@@ -17,5 +15,5 @@ class EnvVar(BaseModel):
 
 
 class SecretsFile(YamlModel):
-    kms_key_id: str | None = None
+    kms_key_id: str = None
     env: List[EnvVar]
