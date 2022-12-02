@@ -18,7 +18,6 @@ from meltano.edk.extension import ExtensionBase
 from .secrets import EnvVar, Secret, SecretsFile
 
 log = structlog.get_logger()
-kms_key_id = os.environ.get("KMS_KEY_ID")
 
 class KMSCrypto:
     """Encrypt plaintext using KMS-compliant RSA algorithm."""
@@ -106,6 +105,11 @@ class KMS(ExtensionBase):
         output_path: Path = Path(".env"),
     ) -> Path:
         client = boto3.client("kms")
+
+        try:
+            kms_key_id = os.environ["KMS_KEY_ID"]
+        except KeyError as ex:
+            raise Exception("The environment variable $KMS_KEY_ID must be set to decrypt") from ex
 
         with open(input_path) as ciphertext_file:
             secrets = SecretsFile.parse_raw(ciphertext_file.read())
