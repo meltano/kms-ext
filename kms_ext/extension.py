@@ -7,6 +7,7 @@ from typing import Any
 
 import boto3
 import dotenv
+import os
 import structlog
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -17,7 +18,6 @@ from meltano.edk.extension import ExtensionBase
 from .secrets import EnvVar, Secret, SecretsFile
 
 log = structlog.get_logger()
-
 
 class KMSCrypto:
     """Encrypt plaintext using KMS-compliant RSA algorithm."""
@@ -67,7 +67,6 @@ class KMS(ExtensionBase):
 
     def encrypt(
         self,
-        kms_key_id: str,
         public_key_path: Path,
         dotenv_path: Path = Path(".env"),
         output_path: Path = Path("secrets.yml"),
@@ -75,7 +74,6 @@ class KMS(ExtensionBase):
         """Encrypt a given dotenv file with a given RSA public key (PEM file).
 
         Args:
-            kms_key_id: The KMS key ID for the keypair being used.
             public_key_path: Path to RSA public key (PEM file).
             dotenv_path: Path to dotenv file (defaults to '.env')
             output_path: Path to output file (defaults to 'secrets.yml')
@@ -94,7 +92,7 @@ class KMS(ExtensionBase):
             )
             env_vars.append(EnvVar(name=key, value=secret))
 
-        secrets = SecretsFile(kms_key_id=kms_key_id, env=env_vars)
+        secrets = SecretsFile(env=env_vars)
 
         with open(output_path, "w") as secrets_file:
             secrets_file.write(secrets.yaml())
@@ -108,6 +106,11 @@ class KMS(ExtensionBase):
     ) -> Path:
         client = boto3.client("kms")
 
+        try:
+            kms_key_id = os.environ["KMS_KEY_ID"]
+        except KeyError as ex:
+            raise Exception("The environment variable $KMS_KEY_ID must be set to decrypt") from ex
+
         with open(input_path) as ciphertext_file:
             secrets = SecretsFile.parse_raw(ciphertext_file.read())
 
@@ -115,7 +118,7 @@ class KMS(ExtensionBase):
             ciphertext = base64.b64decode(env_var.value.ciphertext)
             response = client.decrypt(
                 CiphertextBlob=ciphertext,
-                KeyId=secrets.kms_key_id,
+                KeyId=kms_key_id,
                 EncryptionAlgorithm=env_var.value.scheme,  # "RSAES_OAEP_SHA_256" | "SYMMETRIC_DEFAULT" | "RSAES_OAEP_SHA_1" | "SM2PKE"
             )
             plaintext = response["Plaintext"].decode("utf-8")

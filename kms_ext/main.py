@@ -42,14 +42,12 @@ def describe(
 
 @app.command()
 def encrypt(
-    kms_key_id: str,
     public_key_path: Path,
     dotenv_path: Optional[Path] = typer.Option(Path(".env")),
     output_path: Optional[Path] = typer.Option(Path("secrets.yml")),
 ) -> None:
     """Encrypt a given dotenv file with a given RSA Public Key (PEM file)."""
     ext.encrypt(
-        kms_key_id=kms_key_id,
         public_key_path=public_key_path,
         dotenv_path=dotenv_path,
         output_path=output_path,
